@@ -5,10 +5,10 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Post extends Model
+class Folder extends Model
 {
     use SoftDeletes;
-
+    
     /**
      * The attributes that should be mutated to dates.
      *
@@ -21,8 +21,8 @@ class Post extends Model
         return $this->belongsTo('App\User');
     }
 
-    public function folder()
+    public function posts()
     {
-        return $this->belongsTo('App\Folder');
+        return $this->hasMany('App\Post');
     }
 }

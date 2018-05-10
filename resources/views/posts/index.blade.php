@@ -7,18 +7,17 @@
     <p><a href="{{ route('posts.create') }}" class="btn btn-success">New post</a></p>
     @endauth
     
-    @if(count($posts) > 0)
+    @if(count($items) > 0)
         <div>
-        @foreach($posts as $post)
+        @foreach($items as $post)
             <div class="card mb-4">
                 <div class="card-body">
                     <h2><a href="{{ route('posts.show', ['id' => $post->id]) }}">{{ $post->title }}</a></h2>
                     <div>
                         {{ $post->body }}
                     </div>
-                    <div>
-                        <small class="text-muted">Posted by {{ $post->user->name }}</small>
-                    </div>
+                    <div><small class="text-muted">Posted by {{ $post->user->name }}</small></div>
+                    <div><small class="text-muted">Folder: {{ $post->folder }}</small></div>
                 </div>
                 
                 @if(!Auth::guest() && Auth::user()->id == $post->user->id)

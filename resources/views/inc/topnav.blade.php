@@ -20,7 +20,10 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('posts.index') }}">Posts</a>
                 </li>
-    
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('folders.index') }}">Folders</a>
+                </li>
             </ul>
 
             <!-- Right Side Of Navbar -->

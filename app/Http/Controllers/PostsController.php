@@ -3,57 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use \App\Post;
 
-class PostsController extends Controller
+class PostsController extends CrudController
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth')->except(['index', 'show']);
-    }
-
-    private function findPostOrAbort($id, $includeTrashed = false)
-    {
-        if($includeTrashed)
-        {
-            $post = Post::withTrashed()->find($id);
-        }
-        else
-        {
-            $post = Post::find($id);
-        }
-        
-
-        if(!$post)
-        {
-            abort(404, 'Blog post not found');
-        }
-
-        return $post;
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        $posts = Post::orderBy('id', 'desc')->get();
-
-        $trashed = Post::onlyTrashed()->orderBy('id', 'desc')->get();
-
-        return view('posts.index')->with([
-            'posts' => $posts,
-            'trashed' => $trashed,
-            'title' => 'Posts',
-        ]);
-    }
+    protected $modelName = '\App\Post';
+    protected $indexRoute = 'posts.index';
+    protected $resourceName = ['one' => 'Blog post', 'many' => 'Blog posts'];
+    protected $viewIndex = 'posts.index';
+    protected $viewCreate = 'posts.create';
 
     /**
      * Show the form for creating a new resource.
@@ -62,9 +19,7 @@ class PostsController extends Controller
      */
     public function create()
     {
-        return view('posts.create')->with([
-            'title' => 'Create a new Post'
-        ]);
+        return parent::createWithTitle('Create a new Post');
     }
 
     /**
@@ -80,16 +35,15 @@ class PostsController extends Controller
             'body' => 'required',
         ]);
 
-        $post = new Post();
+        $item = $this->newItem();
 
-        $post->title = $request->input('title');
-        $post->body = $request->input('body');
-        $post->user_id = auth()->user()->id;
+        $item->title = $request->input('title');
+        $item->body = $request->input('body');
 
-        $post->save();
+        $item->save();
 
-        return redirect()->route('posts.index')->with([
-            'success' => sprintf('Post "%s" created!', $post->title)
+        return redirect()->route($this->indexRoute)->with([
+            'success' => sprintf('Post "%s" created!', $item->title)
         ]);
     }
 
@@ -101,7 +55,7 @@ class PostsController extends Controller
      */
     public function show($id)
     {
-        $post = $this->findPostOrAbort($id);
+        $post = $this->findOrAbort($id);
 
         return view('posts.show')->with([
             'post' => $post,
@@ -117,10 +71,10 @@ class PostsController extends Controller
      */
     public function edit($id)
     {
-        $post = $this->findPostOrAbort($id);
+        $post = $this->findOrAbort($id);
 
         if($post->user_id != auth()->user()->id) {
-            return redirect()->route('posts.index')->with('error', 
+            return redirect()->route($this->indexRoute)->with('error', 
                 sprintf('You can not edit the post "%s"!', $post->title));
         }
 
@@ -144,14 +98,14 @@ class PostsController extends Controller
             'body' => 'required',
         ]);
 
-        $post = $this->findPostOrAbort($id);
+        $post = $this->findOrAbort($id);
 
         $post->title = $request->input('title');
         $post->body = $request->input('body');
 
         $post->save();
 
-        return redirect()->route('posts.index')->with([
+        return redirect()->route($this->indexRoute)->with([
             'success' => sprintf('Post "%s" updated!', $post->title)
         ]);
     }
@@ -164,10 +118,10 @@ class PostsController extends Controller
      */
     public function destroy($id)
     {
-        $post = $this->findPostOrAbort($id);
+        $post = $this->findOrAbort($id);
 
         if($post->user_id != auth()->user()->id) {
-            return redirect()->route('posts.index')->with('error', 
+            return redirect()->route($this->indexRoute)->with('error', 
                 sprintf('You can not delete the post "%s"!', $post->title));
         }
 
@@ -175,7 +129,7 @@ class PostsController extends Controller
 
         $post->delete();
 
-        return redirect()->route('posts.index')->with([
+        return redirect()->route($this->indexRoute)->with([
             'success' => sprintf('Post "%s" deleted!', $title)
         ]);
     }
@@ -189,11 +143,11 @@ class PostsController extends Controller
      */
     public function restore($id)
     {
-        $post = $this->findPostOrAbort($id, true);
+        $post = $this->findOrAbort($id, true);
 
         $post->restore();
 
-        return redirect()->route('posts.index')->with([
+        return redirect()->route($this->indexRoute)->with([
             'success' => sprintf('Post "%s" restored!', $post->title)
         ]);
     }
@@ -206,13 +160,13 @@ class PostsController extends Controller
      */
     public function force_delete($id)
     {
-        $post = $this->findPostOrAbort($id, true);
+        $post = $this->findOrAbort($id, true);
         
         $title = $post->title;
 
         $post->forceDelete();
 
-        return redirect()->route('posts.index')->with([
+        return redirect()->route($this->indexRoute)->with([
             'success' => sprintf('Post "%s" removed!', $title)
         ]);
     }
