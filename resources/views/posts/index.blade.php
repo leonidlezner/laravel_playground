@@ -17,7 +17,7 @@
                         {{ $post->body }}
                     </div>
                     <div><small class="text-muted">Posted by {{ $post->user->name }}</small></div>
-                    <div><small class="text-muted">Folder: {{ $post->folder }}</small></div>
+                    <div><small class="text-muted">Folder: {{ $post->folder->title }}</small></div>
                 </div>
                 
                 @if(!Auth::guest() && Auth::user()->id == $post->user->id)
@@ -37,30 +37,32 @@
         <p>No posts found, <a href="{{ route('posts.create') }}">create a new one</a></p>
     @endif
 
-    @if(count($trashed) > 0)
-        <h2>Trash</h2>
+    @auth
+        @if(count($trashed) > 0)
+            <h2>Trash</h2>
 
-        <table class="table table-striped">
-            <tr>
-                <th>Name</th>
-                <th>Action</th>
-            </tr>
-        @foreach($trashed as $post)
-            <tr>
-                <td>
-                    <a href="{{ route('posts.show', ['id' => $post->id]) }}">{{ $post->title }}</a>
-                </td>
-                <td>
-                    {!! Form::open(['action' => ['PostsController@restore', 'id' => $post->id], 'class' => 'd-inline-block']) !!}
-                        {{ Form::submit('Restore', ['class' => 'btn btn-success']) }}
-                    {!! Form::close() !!}
-                    
-                    {!! Form::open(['action' => ['PostsController@force_delete', 'id' => $post->id], 'class' => 'd-inline-block']) !!}
-                        {{ Form::submit('Delete', ['class' => 'btn btn-danger']) }}
-                    {!! Form::close() !!}
-                </td>
-            </tr>
-        @endforeach
-        </table>
-    @endif
+            <table class="table table-striped">
+                <tr>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            @foreach($trashed as $post)
+                <tr>
+                    <td>
+                        <a href="{{ route('posts.show', ['id' => $post->id]) }}">{{ $post->title }}</a>
+                    </td>
+                    <td>
+                        {!! Form::open(['action' => ['PostsController@restore', 'id' => $post->id], 'class' => 'd-inline-block']) !!}
+                            {{ Form::submit('Restore', ['class' => 'btn btn-success']) }}
+                        {!! Form::close() !!}
+                        
+                        {!! Form::open(['action' => ['PostsController@force_delete', 'id' => $post->id], 'class' => 'd-inline-block']) !!}
+                            {{ Form::submit('Delete', ['class' => 'btn btn-danger']) }}
+                        {!! Form::close() !!}
+                    </td>
+                </tr>
+            @endforeach
+            </table>
+        @endif
+    @endauth
 @endsection

@@ -12,7 +12,7 @@
         @foreach($items as $folder)
             <div class="card mb-4">
                 <div class="card-body">
-                    <a href="{{ route('folders.show', ['id' => $folder->id]) }}">{{ $folder->title }}</a>
+                    <a href="{{ route('posts.index', ['folder_id' => $folder->id]) }}">{{ $folder->title }}</a>
                 </div>
                 
                 @if(!Auth::guest() && Auth::user()->id == $folder->user->id)

@@ -3,23 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use \App\Http\Requests\StoreBlogPost;
+use \App\Folder;
 
 class PostsController extends CrudController
 {
     protected $modelName = '\App\Post';
+    protected $viewFolder = 'posts';
     protected $indexRoute = 'posts.index';
     protected $resourceName = ['one' => 'Blog post', 'many' => 'Blog posts'];
-    protected $viewIndex = 'posts.index';
-    protected $viewCreate = 'posts.create';
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    protected $validationRules = [
+        'title' => 'required',
+        'body' => 'required',
+    ];
+
+    public function setFolderFromRequest($item, $request)
     {
-        return parent::createWithTitle('Create a new Post');
+        $newFolderId = $request->input('folder_id');
+
+        $newFolder = Folder::find($newFolderid);
+
+        if(!$newFolder)
+        {
+
+        }
     }
 
     /**
@@ -30,57 +38,12 @@ class PostsController extends CrudController
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'title' => 'required',
-            'body' => 'required',
-        ]);
+        $this->validate($request, $this->validationRules);
 
-        $item = $this->newItem();
-
-        $item->title = $request->input('title');
-        $item->body = $request->input('body');
-
-        $item->save();
+        $item = auth()->user()->posts()->create($request->all());
 
         return redirect()->route($this->indexRoute)->with([
             'success' => sprintf('Post "%s" created!', $item->title)
-        ]);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        $post = $this->findOrAbort($id);
-
-        return view('posts.show')->with([
-            'post' => $post,
-            'title' => $post->title
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $post = $this->findOrAbort($id);
-
-        if($post->user_id != auth()->user()->id) {
-            return redirect()->route($this->indexRoute)->with('error', 
-                sprintf('You can not edit the post "%s"!', $post->title));
-        }
-
-        return view('posts.edit')->with([
-            'post' => $post,
-            'title' => 'Edit ' . $post->title
         ]);
     }
 
@@ -93,81 +56,31 @@ class PostsController extends CrudController
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
-            'title' => 'required',
-            'body' => 'required',
-        ]);
+        $this->validate($request, $this->validationRules);
 
-        $post = $this->findOrAbort($id);
+        $item = $this->findOrAbort($id);
 
-        $post->title = $request->input('title');
-        $post->body = $request->input('body');
+        $redirect = $this->checkAccessRights($item);
 
-        $post->save();
+        if($redirect)
+        {
+            return $redirect;
+        }
+        /*
+        $folder = auth()->user()->folders->find($request->input(6));
 
-        return redirect()->route($this->indexRoute)->with([
-            'success' => sprintf('Post "%s" updated!', $post->title)
-        ]);
-    }
+        if($folder)
+        {
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $post = $this->findOrAbort($id);
-
-        if($post->user_id != auth()->user()->id) {
-            return redirect()->route($this->indexRoute)->with('error', 
-                sprintf('You can not delete the post "%s"!', $post->title));
         }
 
-        $title = $post->title;
+        $item->folder()->associate($folder);
+        */
 
-        $post->delete();
-
-        return redirect()->route($this->indexRoute)->with([
-            'success' => sprintf('Post "%s" deleted!', $title)
-        ]);
-    }
-
-
-    /**
-     * Restores the specified resource from trash.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function restore($id)
-    {
-        $post = $this->findOrAbort($id, true);
-
-        $post->restore();
+        $item->update($request->all());
 
         return redirect()->route($this->indexRoute)->with([
-            'success' => sprintf('Post "%s" restored!', $post->title)
-        ]);
-    }
-
-    /**
-     * Forces the deletion of the resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function force_delete($id)
-    {
-        $post = $this->findOrAbort($id, true);
-        
-        $title = $post->title;
-
-        $post->forceDelete();
-
-        return redirect()->route($this->indexRoute)->with([
-            'success' => sprintf('Post "%s" removed!', $title)
+            'success' => sprintf('Post "%s" updated!', $item->title)
         ]);
     }
 }

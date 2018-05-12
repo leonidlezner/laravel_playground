@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1>{{ $exception->getMessage() }}</h1>
+    <h1>Error: {{ $exception->getMessage() }}</h1>
 @endsection

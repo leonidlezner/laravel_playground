@@ -13,7 +13,10 @@
                     {{ Form::label('body', 'Body') }}
                     {{ Form::textarea('body', '', ['class' => 'form-control']) }}
             </div> 
+            
             {{ Form::submit('Create', ['class' => 'btn btn-primary']) }}
+            <a href="{{ route('posts.index') }}" class="btn btn-light">Cancel</a>
+
         {!! Form::close() !!}
     </div>
 @endsection

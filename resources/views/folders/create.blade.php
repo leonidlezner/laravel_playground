@@ -10,6 +10,8 @@
                 {{ Form::text('title', '', ['class' => 'form-control']) }}
             </div>
             {{ Form::submit('Create', ['class' => 'btn btn-primary']) }}
+            
+            <a href="{{ route('folders.index') }}" class="btn btn-light">Cancel</a>
         {!! Form::close() !!}
     </div>
 @endsection

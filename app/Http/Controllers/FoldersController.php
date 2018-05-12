@@ -9,19 +9,9 @@ class FoldersController extends CrudController
     protected $modelName = '\App\Folder';
     protected $indexRoute = 'folders.index';
     protected $resourceName = ['one' => 'Folder', 'many' => 'Folders'];
-    protected $viewIndex = 'folders.index';
-    protected $viewCreate = 'folders.create';
+    protected $viewFolder = 'folders';
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        return parent::createWithTitle('Create a new Folder');
-    }
-
+    
     /**
      * Store a newly created resource in storage.
      *
@@ -34,37 +24,11 @@ class FoldersController extends CrudController
             'title' => 'required',
         ]);
 
-        $item = $this->newItem();
-
-        $item->title = $request->input('title');
-
-        $item->save();
+        $item = auth()->user()->folders()->create($request->all());
 
         return redirect()->route($this->indexRoute)->with([
             'success' => sprintf('Folder "%s" created!', $item->title)
         ]);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
     }
 
     /**
@@ -76,17 +40,23 @@ class FoldersController extends CrudController
      */
     public function update(Request $request, $id)
     {
-        //
-    }
+        $this->validate($request, [
+            'title' => 'required'
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        $item = $this->findOrAbort($id);
+
+        $redirect = $this->checkAccessRights($item);
+
+        if($redirect)
+        {
+            return $redirect;
+        }
+
+        $item->update($request->all());
+
+        return redirect()->route($this->indexRoute)->with([
+            'success' => sprintf('Folder "%s" updated!', $item->title)
+        ]);
     }
 }

@@ -9,12 +9,9 @@ class Post extends Model
 {
     use SoftDeletes;
 
-    /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
     protected $dates = ['deleted_at'];
+
+    protected $fillable = ['title', 'body', 'folder_id'];
     
     public function user()
     {
@@ -23,6 +20,21 @@ class Post extends Model
 
     public function folder()
     {
-        return $this->belongsTo('App\Folder');
+        return $this->belongsTo('App\Folder')->withDefault([
+            'title' => 'No folder'
+        ]);
+    }
+
+    public function getAllFoldersForSelectAttribute()
+    {
+        $result = array();
+
+        $items = auth()->user()->folders;
+
+        foreach($items as $item) {
+            $result[$item->id] = $item->title;
+        }
+
+        return $result;
     }
 }
