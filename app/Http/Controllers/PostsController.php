@@ -8,7 +8,7 @@ use \App\Folder;
 
 class PostsController extends CrudController
 {
-    protected $modelName = '\App\Post';
+    protected $model = \App\Post::class;
     protected $viewFolder = 'posts';
     protected $indexRoute = 'posts.index';
     protected $resourceName = ['one' => 'Blog post', 'many' => 'Blog posts'];
@@ -40,6 +40,8 @@ class PostsController extends CrudController
     {
         $this->validate($request, $this->validationRules);
 
+        $this->authorize('create', $this->model);
+
         $item = auth()->user()->posts()->create($request->all());
 
         return redirect()->route($this->indexRoute)->with([
@@ -60,12 +62,17 @@ class PostsController extends CrudController
 
         $item = $this->findOrAbort($id);
 
+        $this->authorize('update', $item);
+
+        /*
         $redirect = $this->checkAccessRights($item);
 
         if($redirect)
         {
             return $redirect;
         }
+        */
+
         /*
         $folder = auth()->user()->folders->find($request->input(6));
 

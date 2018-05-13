@@ -6,10 +6,11 @@ use Illuminate\Http\Request;
 
 class FoldersController extends CrudController
 {
-    protected $modelName = '\App\Folder';
+    protected $model = \App\Folder::class;
     protected $indexRoute = 'folders.index';
     protected $resourceName = ['one' => 'Folder', 'many' => 'Folders'];
     protected $viewFolder = 'folders';
+    protected $validationRules = ['title' => 'required'];
 
     
     /**
@@ -20,9 +21,9 @@ class FoldersController extends CrudController
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'title' => 'required',
-        ]);
+        $this->validate($request, $this->validationRules);
+
+        $this->authorize('create', $this->model);
 
         $item = auth()->user()->folders()->create($request->all());
 
@@ -40,18 +41,11 @@ class FoldersController extends CrudController
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
-            'title' => 'required'
-        ]);
+        $this->validate($request, $this->validationRules);
 
         $item = $this->findOrAbort($id);
 
-        $redirect = $this->checkAccessRights($item);
-
-        if($redirect)
-        {
-            return $redirect;
-        }
+        $this->authorize('update', $item);
 
         $item->update($request->all());
 

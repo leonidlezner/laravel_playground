@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use \App\Post;
 
 class CrudController extends Controller
 {
-    protected $modelName = '';
+    protected $model = '';
     protected $indexRoute = '';
     protected $resourceName = ['one' => '', 'many' => ''];
     protected $authExcept = ['index', 'show'];
@@ -16,6 +15,7 @@ class CrudController extends Controller
     protected $viewCreate = '';
     protected $viewShow = '';
     protected $viewEdit = '';
+    protected $validationRules = [];
     
     /**
      * Create a new controller instance.
@@ -40,7 +40,7 @@ class CrudController extends Controller
             }
         }
 
-        assert($this->modelName != '');
+        assert($this->model != '');
         assert($this->indexRoute != '');
         assert($this->viewIndex != '');
         assert($this->viewCreate != '');
@@ -54,11 +54,11 @@ class CrudController extends Controller
     {
         if($includeTrashed)
         {
-            $resource = $this->modelName::withTrashed()->find($id);
+            $resource = $this->model::withTrashed()->find($id);
         }
         else
         {
-            $resource = $this->modelName::find($id);
+            $resource = $this->model::find($id);
         }
         
         if(!$resource)
@@ -69,6 +69,7 @@ class CrudController extends Controller
         return $resource;
     }
 
+    /*
     protected function checkAccessRights($item)
     {
         if($item->user_id != auth()->user()->id) {
@@ -77,16 +78,18 @@ class CrudController extends Controller
         }
 
         return NULL;
-    }
+    }*/
 
+    /*
     protected function newItem()
     {
-        $item = new $this->modelName();
+        $item = new $this->model();
         
         $item->user_id = auth()->user()->id;
 
         return $item;
     }
+    */
 
     /**
      * Display a listing of the resource.
@@ -95,11 +98,11 @@ class CrudController extends Controller
      */
     public function index()
     {
-        $items = $this->modelName::orderBy('id', 'desc')->get();
+        $items = $this->model::orderBy('id', 'desc')->get();
 
         if(auth()->check())
         {
-            $trashed = $this->modelName::onlyTrashed()
+            $trashed = $this->model::onlyTrashed()
                                 ->orderBy('id', 'desc')
                                 ->where('user_id', auth()->user()->id)
                                 ->get();
@@ -124,6 +127,8 @@ class CrudController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', $this->model);
+
         return view($this->viewCreate)->with([
             'title' => sprintf('Create new %s', $this->resourceName['one'])
         ]);
@@ -140,6 +145,8 @@ class CrudController extends Controller
     {
         $item = $this->findOrAbort($id);
 
+        $this->authorize('view', $item);
+
         return view($this->viewShow)->with(compact('item'));
     }
     
@@ -153,12 +160,7 @@ class CrudController extends Controller
     {
         $item = $this->findOrAbort($id);
 
-        $redirect = $this->checkAccessRights($item);
-
-        if($redirect)
-        {
-            return $redirect;
-        }
+        $this->authorize('update', $item);
 
         return view($this->viewEdit)->with(compact('item'));
     }
@@ -174,12 +176,7 @@ class CrudController extends Controller
     {
         $item = $this->findOrAbort($id);
 
-        $redirect = $this->checkAccessRights($item);
-
-        if($redirect)
-        {
-            return $redirect;
-        }
+        $this->authorize('delete', $item);
 
         $title = $item->title;
 
@@ -201,12 +198,7 @@ class CrudController extends Controller
     {
         $item = $this->findOrAbort($id, true);
 
-        $redirect = $this->checkAccessRights($item);
-
-        if($redirect)
-        {
-            return $redirect;
-        }
+        $this->authorize('delete', $item);
 
         $item->restore();
 
@@ -225,13 +217,8 @@ class CrudController extends Controller
     public function force_delete($id)
     {
         $item = $this->findOrAbort($id, true);
-        
-        $redirect = $this->checkAccessRights($item);
 
-        if($redirect)
-        {
-            return $redirect;
-        }
+        $this->authorize('delete', $item);
 
         $title = $item->title;
 
