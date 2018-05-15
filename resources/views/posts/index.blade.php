@@ -32,6 +32,8 @@
                 @endif
             </div>
         @endforeach
+        
+            {{ $items->links() }}
         </div>
     @else
         <p>No posts found, <a href="{{ route('posts.create') }}">create a new one</a></p>
@@ -49,7 +51,7 @@
             @foreach($trashed as $post)
                 <tr>
                     <td>
-                        <a href="{{ route('posts.show', ['id' => $post->id]) }}">{{ $post->title }}</a>
+                        {{ $post->title }}
                     </td>
                     <td>
                         {!! Form::open(['action' => ['PostsController@restore', 'id' => $post->id], 'class' => 'd-inline-block']) !!}

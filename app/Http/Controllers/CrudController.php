@@ -16,6 +16,7 @@ class CrudController extends Controller
     protected $viewShow = '';
     protected $viewEdit = '';
     protected $validationRules = [];
+    protected $items_per_page = 10;
     
     /**
      * Create a new controller instance.
@@ -69,28 +70,6 @@ class CrudController extends Controller
         return $resource;
     }
 
-    /*
-    protected function checkAccessRights($item)
-    {
-        if($item->user_id != auth()->user()->id) {
-            return redirect()->route($this->indexRoute)->with('error', 
-                sprintf('You are not authorized to modify the %s "%s"!', $this->resourceName['one'], $item->title));
-        }
-
-        return NULL;
-    }*/
-
-    /*
-    protected function newItem()
-    {
-        $item = new $this->model();
-        
-        $item->user_id = auth()->user()->id;
-
-        return $item;
-    }
-    */
-
     /**
      * Display a listing of the resource.
      *
@@ -98,7 +77,7 @@ class CrudController extends Controller
      */
     public function index()
     {
-        $items = $this->model::orderBy('id', 'desc')->get();
+        $items = $this->model::orderBy('id', 'desc')->paginate($this->items_per_page);
 
         if(auth()->check())
         {
@@ -145,7 +124,10 @@ class CrudController extends Controller
     {
         $item = $this->findOrAbort($id);
 
-        $this->authorize('view', $item);
+        if(!in_array('show', $this->authExcept))
+        {
+            $this->authorize('view', $item);
+        }
 
         return view($this->viewShow)->with(compact('item'));
     }
