@@ -32,5 +32,7 @@ Route::post('/folders/{folder}/restore', 'FoldersController@restore')->name('fol
 Route::post('/folders/{folder}/forcedelete', 'FoldersController@force_delete')->name('folders.force_delete');
 
 Auth::routes();
+Route::get('login/facebook', 'Auth\AuthController@redirectToFacebook');
+Route::get('login/facebook/callback', 'Auth\AuthController@getFacebookCallback');
 
 Route::get('/home', 'HomeController@index')->name('home');
